@@ -12,11 +12,11 @@ UDP_PORT = 5005
 def collect_range():
     while True:
         message = ultrasound.get_distance()
-        str_message = str(message)
-        print str_message
         sock = socket.socket(socket.AF_INET, # Internet
                              socket.SOCK_DGRAM) # UDP
-        sock.sendto(str_message, (UDP_IP, UDP_PORT))
+        sock.sendto(message, (UDP_IP, UDP_PORT))
+
+
 
 range_thread = threading.Thread(target=collect_range)
 range_thread.daemon = True
