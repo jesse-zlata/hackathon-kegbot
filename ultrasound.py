@@ -6,6 +6,7 @@ import time
 
 gpio.setmode(gpio.BCM)
 
+
 class Ultrasound():
 
     def __init__(self):
@@ -15,22 +16,22 @@ class Ultrasound():
         self.echo = 24
 
     # are you still there?
-    def checkForHuman(self):
+    def get_distance(self):
 
-        gpio.setup(self.trig,gpio.OUT)
-        gpio.setup(self.echo,gpio.IN)
+        gpio.setup(self.trig, gpio.OUT)
+        gpio.setup(self.echo, gpio.IN)
 
-        gpio.output(self.trig,False)
+        gpio.output(self.trig, False)
 
         print 'waiting for sensor to settle'
 
         time.sleep(2)
 
-        gpio.output(self.trig,True)
+        gpio.output(self.trig, True)
 
         time.sleep(0.0001)
 
-        gpio.output(self.trig,False)
+        gpio.output(self.trig, False)
 
         while gpio.input(self.echo) == 0:
             pulse_start = time.time()
@@ -41,15 +42,9 @@ class Ultrasound():
         pulse_duration = pulse_end - pulse_start
 
         distance = pulse_duration * 17150
-        distance = round(distance,2)
+        distance = round(distance, 2)
 
         print 'distance: ', distance, 'cm'
 
         # if there is someone there
-        if distance < 40:
-            return True
-        else:
-            return False
-
-
-
+        return distance
