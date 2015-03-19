@@ -9,7 +9,7 @@ UDP_PORT = 5005
 
 while True:
     message = ultrasound.checkForHuman()
-    print message
+    print str(message)
     sock = socket.socket(socket.AF_INET, # Internet
                          socket.SOCK_DGRAM) # UDP
     sock.sendto(message, (UDP_IP, UDP_PORT))
