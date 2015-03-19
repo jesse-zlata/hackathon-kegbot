@@ -9,11 +9,12 @@ UDP_PORT = 5005
 
 
 def ultrasound_stuff():
-    message = ultrasound.checkForHuman()
-    print message
-    sock = socket.socket(socket.AF_INET, # Internet
-                         socket.SOCK_DGRAM) # UDP
-    sock.sendto(message, (UDP_IP, UDP_PORT))
+    while True:
+        message = ultrasound.checkForHuman()
+        print message
+        sock = socket.socket(socket.AF_INET, # Internet
+                             socket.SOCK_DGRAM) # UDP
+        sock.sendto(message, (UDP_IP, UDP_PORT))
 
 threads = []
 range_thread = threading.Thread(target=ultrasound_stuff)
