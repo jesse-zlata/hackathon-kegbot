@@ -15,7 +15,6 @@ class Ultrasound():
         self.trig = 23
         self.echo = 24
 
-    # are you still there?
     def get_distance(self):
 
         gpio.setup(self.trig, gpio.OUT)
@@ -46,5 +45,4 @@ class Ultrasound():
 
         print 'distance: ', distance, 'cm'
 
-        # if there is someone there
         return distance

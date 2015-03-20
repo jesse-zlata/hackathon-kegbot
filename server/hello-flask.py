@@ -1,7 +1,7 @@
 
 from flask import Flask, render_template, jsonify
-from ultrasound import *
-from flowmeter import *
+from pi.ultrasound import *
+from server.flowmeter import *
 import RPi.GPIO as GPIO
 
 ultrasound = Ultrasound()
