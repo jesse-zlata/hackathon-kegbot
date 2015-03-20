@@ -1,6 +1,6 @@
 import threading
 
-from pi.ultrasound import *
+from ultrasound import *
 from pi import flow, udp
 
 
