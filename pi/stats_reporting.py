@@ -1,10 +1,11 @@
 import threading
+import time
+import ultrasound
+import flow
+import udp
 
-from ultrasound import *
-from pi import flow, udp
 
-
-ultrasound = Ultrasound()
+distance_meter = ultrasound.Ultrasound()
 
 UDP_IP = "192.168.1.145" # ip of stat processor
 UDP_PORT = 5005
@@ -19,7 +20,7 @@ right_fm = flow.FlowMeter(27, rfm_sender)
 
 def collect_range():
     while True:
-        data = ultrasound.get_distance()
+        data = distance_meter.get_distance()
         range_sender.send_message(data)
 
 
