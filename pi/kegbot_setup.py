@@ -33,57 +33,81 @@ def main():
         controller_name = sys.stdin.readline()
 
     controller_id = None
+    headers = {'X-Kegbot-Api-Key': None}
+    controller_url = "/".join((server_address, "api/controllers"))
 
     try:
         api_key = config.get(section='api', option='api_key')
+        headers['X-Kegbot-Api-Key'] = api_key
     except Exception as e:
         print (e)
         api_key = None
 
     if args.full or args.controller:
         if api_key is None:
-            cfgfile = open("api.ini", 'w')
-
-            device_link_url = "/".join((server_address, "api/devices/link"))
-            print("Connecting to server at $s", device_link_url)
-
-            r = requests.post(url=device_link_url, json={"name": controller_name})
-            code = r.json()['object']['code']
-
-            device_confirm_url = "/".join((server_address, "kegadmin/devices/link/"))
-            print("Please enter this code: {} at: {}".format(code, device_confirm_url))
-            print("I'll figure a way to do this automatically later")
-            print ("When your ready press enter")
-
-            sys.stdin.readline()
-
-            api_key_url = "/".join((server_address, "api/devices/link/status", code))
-            r = requests.get(api_key_url)
-            api_key = r.json()['object']['api_key']
-            print("The API key for this controller is {}".format(api_key))
-
-            config.add_section('api')
-            config.set('api', 'api_key', api_key)
-            config.write(cfgfile)
-            cfgfile.close()
-
-        headers = {'X-Kegbot-Api-Key': api_key}
-        controler_url = "/".join((server_address, "api/controllers"))
-        r = requests.post(url=controler_url, data={"name": controller_name}, headers=headers)
+            api_key = setup_api_key(server_address, controller_name, config)
+            headers['X-Kegbot-Api-Key'] = api_key
+        r = requests.post(url=controller_url, data={"name": controller_name}, headers=headers)
         controller_id = r.json()['object']['id']
 
     if args.full or args.taps:
         if controller_id is None:
-            print("Please enter the id number of the controller you wish to connect to")
-            # TODO call to api to list controllers
-            # TODO print controller list
-            controller_id = sys.stdin.readline()
+            if api_key is None:
+                api_key = setup_api_key(server_address, controller_name, config)
+                headers['X-Kegbot-Api-Key'] = api_key
+            r = requests.get(controller_url, headers=headers)
+            controller_response = r.json()
+            controller_list = controller_response['objects']
+            for controller in controller_list:
+                if controller['name'] == controller_name:
+                    controller_id = controller['id']
+            if controller_id is None:
+                print("Found the following controllers:")
+                for controller in controller_list:
+                    print("{}: {}".format(controller['id'], controller['name']))
+                print("Please enter the id number of the controller you wish to connect to")
+                wanted_controller = sys.stdin.readline()
+                for controller in controller_list:
+                    if controller['id'] == wanted_controller:
+                        controller_id = controller['id']
+                        controller_name = controller['name']
         print("How many taps are you connecting?")
         tap_count = int(sys.stdin.readline())
+        tap_url = '/'.join(server_address, "api/taps")
+        flow_meter_url = '/'.join(server_address, "api/flow-meters")
         for x in xrange(0, tap_count):
-            # TODO get tap info
-            # TODO post tap info
+            requests.post(flow_meter_url, json={'ticks': 0,
+                                                'port': controller_name,
+                                                'controller': controller_id})
+            requests.post(tap_url, json={'name': controller_name.join(x)})
 
+
+def setup_api_key(server_address, controller_name, config):
+    cfgfile = open("api.ini", 'w')
+    device_link_url = "/".join((server_address, "api/devices/link"))
+    print("Connecting to server at $s", device_link_url)
+
+    r = requests.post(url=device_link_url, json={"name": controller_name})
+    code = r.json()['object']['code']
+
+    device_confirm_url = "/".join((server_address, "kegadmin/devices/link/"))
+    print("Please enter this code: {} at: {}".format(code, device_confirm_url))
+    print("I'll figure a way to do this automatically later")
+    print ("When your ready press enter")
+
+    sys.stdin.readline()
+
+    api_key_url = "/".join((server_address, "api/devices/link/status", code))
+    r = requests.get(api_key_url)
+    api_key = r.json()['object']['api_key']
+    print("The API key for this controller is {}".format(api_key))
+
+    config.add_section('api')
+    config.set('api', 'api_key', api_key)
+    config.write(cfgfile)
+    cfgfile.close()
+
+    return api_key
 
 if __name__ == '__main__':
     main()
