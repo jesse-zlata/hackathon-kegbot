@@ -73,13 +73,21 @@ def main():
                         controller_name = controller['name']
         print("How many taps are you connecting?")
         tap_count = int(sys.stdin.readline())
-        tap_url = '/'.join(server_address, "api/taps")
-        flow_meter_url = '/'.join(server_address, "api/flow-meters")
+        tap_url = '/'.join((server_address, "api/taps"))
+        flow_meter_url = '/'.join((server_address, "api/flow-meters"))
         for x in xrange(0, tap_count):
-            requests.post(flow_meter_url, json={'ticks': 0,
-                                                'port': controller_name,
-                                                'controller': controller_id})
-            requests.post(tap_url, json={'name': controller_name.join(x)})
+            data = {
+                'ticks_per_ml': 1,
+                'port_name': "meter" + str(x),
+                'controller': controller_id
+            }
+            r = requests.post(flow_meter_url, data=data, headers=headers)
+            meter_id = r.json()['object']['id']
+            r = requests.post(tap_url, data={'name': "tap" + str(x)},
+                              headers=headers)
+            tap_id = r.json()['object']['id']
+            connect_url = "/".join((server_address, "api/taps", str(tap_id), "connect-meter"))
+            requests.post(connect_url, data={'meter': meter_id}, headers=headers)
 
 
 def setup_api_key(server_address, controller_name, config):
