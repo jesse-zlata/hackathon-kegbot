@@ -83,8 +83,11 @@ def main():
             }
             r = requests.post(flow_meter_url, data=data, headers=headers)
             meter_id = r.json()['object']['id']
-            r = requests.post(tap_url, data={'name': "tap" + str(x)},
-                              headers=headers)
+            print("Enter a name for the tap")
+            name = sys.stdin.readline()
+            if name is None:
+                name = controller_name + "_tap_" + str(x)
+            r = requests.post(tap_url, data={'name': name}, headers=headers)
             tap_id = r.json()['object']['id']
             connect_url = "/".join((server_address, "api/taps", str(tap_id), "connect-meter"))
             requests.post(connect_url, data={'meter': meter_id}, headers=headers)
